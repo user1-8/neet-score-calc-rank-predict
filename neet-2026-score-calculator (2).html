@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEET 2026 · Score &amp; Rank Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#14213D;
+    --navy-deep:#0B1526;
+    --paper:#FAF6EC;
+    --paper-dim:#F1EBDC;
+    --ink:#1D3557;
+    --ink-soft:#4A5A7A;
+    --correct:#2E7D5B;
+    --correct-bg:#E4F1EA;
+    --wrong:#C1443D;
+    --wrong-bg:#FBEAE8;
+    --amber:#E9A23B;
+    --line:#D8D2C2;
+    --line-dark:#2A3A5C;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--navy-deep);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .serif{font-family:'Source Serif 4',serif;}
+
+  /* ===== MASTHEAD ===== */
+  .masthead{
+    background:
+      radial-gradient(ellipse at top, #1B2C52 0%, var(--navy-deep) 70%);
+    color:var(--paper);
+    padding:56px 24px 72px;
+    text-align:center;
+    border-bottom:3px double #3B4C74;
+    position:relative;
+    overflow:hidden;
+  }
+  .masthead::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.02) 40px);
+    pointer-events:none;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin-bottom:18px;
+  }
+  .masthead h1{
+    font-family:'Source Serif 4',serif;
+    font-weight:700;
+    font-size:clamp(32px,5vw,52px);
+    line-height:1.1;
+    margin:0 0 14px;
+    letter-spacing:-0.01em;
+  }
+  .masthead p{
+    max-width:520px;
+    margin:0 auto;
+    color:#C7CEE0;
+    font-size:15px;
+    line-height:1.6;
+  }
+  .masthead .meta{
+    margin-top:28px;
+    display:flex;
+    gap:28px;
+    justify-content:center;
+    flex-wrap:wrap;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    color:#8C9AC2;
+  }
+  .masthead .meta span b{color:var(--paper);font-weight:500;}
+
+  /* ===== LAYOUT ===== */
+  .wrap{max-width:760px;margin:0 auto;padding:0 20px;}
+  .sheet{
+    background:var(--paper);
+    margin-top:-40px;
+    border-radius:6px;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,0.5);
+    position:relative;
+    z-index:2;
+  }
+  .panel{
+    padding:36px 32px;
+    border-bottom:1px solid var(--line);
+  }
+  .panel:last-child{border-bottom:none;}
+  .panel-label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .panel-label .num{
+    width:22px;height:22px;
+    border-radius:50%;
+    border:1.5px solid var(--ink);
+    display:inline-flex;
+    align-items:center;justify-content:center;
+    font-size:11px;
+    flex-shrink:0;
+  }
+
+  /* ===== DISCLAIMER ===== */
+  .disclaimer{
+    background:var(--paper-dim);
+    border:1px dashed var(--ink-soft);
+    border-radius:6px;
+    padding:18px 20px;
+    font-size:13.5px;
+    line-height:1.6;
+    color:var(--ink);
+  }
+  .disclaimer strong{color:var(--navy);}
+  .agree-row{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    margin-top:14px;
+    font-size:13.5px;
+    cursor:pointer;
+  }
+  .agree-row input{
+    margin-top:2px;
+    width:17px;height:17px;
+    accent-color:var(--navy);
+    cursor:pointer;
+    flex-shrink:0;
+  }
+
+  /* ===== INPUT ===== */
+  textarea{
+    width:100%;
+    min-height:180px;
+    resize:vertical;
+    border:1.5px solid var(--line);
+    border-radius:6px;
+    padding:14px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;
+    line-height:1.5;
+    color:var(--ink);
+    background:#fff;
+    transition:border-color .15s;
+  }
+  textarea:focus{outline:none;border-color:var(--navy);}
+  textarea:disabled{background:#EEEAE0;color:#999;}
+
+  .btn{
+    appearance:none;
+    border:none;
+    background:var(--navy);
+    color:var(--paper);
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:14.5px;
+    padding:13px 26px;
+    border-radius:6px;
+    cursor:pointer;
+    margin-top:16px;
+    transition:background .15s, transform .1s;
+  }
+  .btn:hover:not(:disabled){background:#0F1830;}
+  .btn:active:not(:disabled){transform:scale(0.98);}
+  .btn:disabled{background:#B9B2A0;cursor:not-allowed;}
+
+  .error-msg{
+    margin-top:14px;
+    background:var(--wrong-bg);
+    color:var(--wrong);
+    border:1px solid #E6B7B3;
+    border-radius:6px;
+    padding:12px 16px;
+    font-size:13.5px;
+    display:none;
+  }
+
+  /* ===== RESULTS ===== */
+  #results{display:none;}
+
+  .score-row{
+    display:flex;
+    align-items:center;
+    gap:36px;
+    flex-wrap:wrap;
+  }
+  .score-bubble-wrap{
+    position:relative;
+    width:180px;height:180px;
+    flex-shrink:0;
+  }
+  .score-bubble-bg, .score-bubble-fg{
+    position:absolute;inset:0;
+    border-radius:50%;
+  }
+  .score-bubble-bg{
+    background:#fff;
+    border:2px solid var(--line);
+  }
+  .score-bubble-fg{
+    background: conic-gradient(var(--navy) 0%, transparent 0%);
+  }
+  .score-bubble-center{
+    position:absolute;
+    inset:14px;
+    border-radius:50%;
+    background:var(--paper);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    border:1px solid var(--line);
+  }
+  .score-bubble-center .num{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:34px;
+    color:var(--navy);
+    line-height:1;
+  }
+  .score-bubble-center .lbl{
+    font-size:10px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-top:6px;
+  }
+
+  .rank-block{flex:1;min-width:220px;}
+  .rank-block .lbl{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .rank-block .rank-val{
+    font-family:'Source Serif 4',serif;
+    font-weight:700;
+    font-size:30px;
+    color:var(--navy);
+    line-height:1.15;
+  }
+  .rank-block .rank-note{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-top:6px;
+    line-height:1.5;
+  }
+
+  .counts-row{
+    display:flex;
+    gap:14px;
+    margin-top:24px;
+    flex-wrap:wrap;
+  }
+  .count-chip{
+    flex:1;min-width:110px;
+    border-radius:6px;
+    padding:12px 14px;
+    text-align:center;
+  }
+  .count-chip .n{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:22px;}
+  .count-chip .t{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);margin-top:2px;}
+  .count-chip.correct{background:var(--correct-bg);}
+  .count-chip.correct .n{color:var(--correct);}
+  .count-chip.wrong{background:var(--wrong-bg);}
+  .count-chip.wrong .n{color:var(--wrong);}
+  .count-chip.unatt{background:#EFEBE0;}
+  .count-chip.unatt .n{color:var(--ink-soft);}
+
+  table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13.5px;}
+  th,td{padding:10px 8px;text-align:left;border-bottom:1px solid var(--line);}
+  th{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    font-weight:500;
+  }
+  td.num, th.num{text-align:right;font-family:'JetBrains Mono',monospace;}
+  tr:last-child td{border-bottom:none;}
+  tr.total-row td{font-weight:700;border-top:2px solid var(--ink);border-bottom:none;padding-top:12px;}
+
+  .foot-note{
+    font-size:12px;
+    color:var(--ink-soft);
+    line-height:1.6;
+    padding:24px 32px 40px;
+    text-align:center;
+  }
+  .foot-note a{color:var(--ink);}
+
+  @media (max-width:600px){
+    .panel{padding:26px 20px;}
+    .masthead{padding:44px 18px 60px;}
+    .score-row{gap:20px;}
+  }
+
+  #qGrid{display:flex;flex-direction:column;gap:14px;}
+  .qgrid-subject-label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .qgrid-cells{display:flex;flex-wrap:wrap;gap:4px;}
+  .qcell{
+    width:26px;height:26px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    border-radius:4px;
+    flex-shrink:0;
+  }
+  .qcell.correct{background:var(--correct-bg);color:var(--correct);border:1px solid var(--correct);}
+  .qcell.wrong{background:var(--wrong-bg);color:var(--wrong);border:1px solid var(--wrong);}
+  .qcell.unatt{background:#EFEBE0;color:var(--ink-soft);border:1px solid var(--line);}
+
+  .qlist-block .qlist-title{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    margin-bottom:6px;
+  }
+  .qlist-block.correct .qlist-title{color:var(--correct);}
+  .qlist-block.wrong .qlist-title{color:var(--wrong);}
+  .qlist-block.unatt .qlist-title{color:var(--ink-soft);}
+  .qlist-block .qlist-values{
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    line-height:1.7;
+    color:var(--ink);
+    word-break:break-word;
+  }
+
+  @media (max-width:600px){
+    .qcell{width:22px;height:22px;font-size:9px;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="eyebrow">Provisional Answer Key · NEET (UG) 2026</div>
+  <h1>Know your score.<br>Know your rank.</h1>
+  <p>Paste your official NTA response sheet below to instantly calculate your marks, subject-wise breakdown, and expected rank range — using the provisional answer key released 25.06.2026.</p>
+  <div class="meta">
+    <span>Exam date <b>21.06.2026</b></span>
+    <span>Booklet codes covered <b>50 · 60 · 70 · 80</b></span>
+    <span>Marking <b>+4 / −1</b></span>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="sheet">
+
+    <div class="panel">
+      <div class="panel-label"><span class="num">1</span> Before you paste your data</div>
+      <div class="disclaimer">
+        <strong>Your data is used only to calculate your marks, rank, and analytics — nothing else.</strong>
+        This page runs entirely in your browser: your response sheet is never uploaded or sent to any server. We do not store, sell, or share it, and it is never used for any illegal or unethical purpose.
+        Your result is saved only on your own device (so it's still there if you close and reopen this page) — you can clear it anytime with the "Clear my saved data" button next to your results.
+        <label class="agree-row">
+          <input type="checkbox" id="agreeBox">
+          <span>I have read this and agree to proceed with my data being used as described above.</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label"><span class="num">2</span> Paste your response sheet</div>
+      <p style="font-size:13.5px;color:var(--ink-soft);margin:0 0 12px;line-height:1.6;">
+        Copy the full JSON from your NTA response sheet page (starts with <code class="mono">{"candidateDetails"...</code>) and paste it below.
+      </p>
+
+      <button class="btn" id="howToBtn" style="background:transparent;color:var(--navy);border:1.5px solid var(--navy);padding:9px 18px;font-size:13px;margin-top:0;margin-bottom:16px;">
+        Don't know how to get this? Show me how →
+      </button>
+
+      <div id="howToPanel" style="display:none;background:var(--paper-dim);border:1px dashed var(--ink-soft);border-radius:6px;padding:20px 22px;margin-bottom:20px;font-size:13.5px;line-height:1.7;">
+        <p style="margin:0 0 12px;"><strong>Follow these steps on your NEET response sheet page (the page open on the official NTA website that shows your recorded answers):</strong></p>
+        <ol style="margin:0 0 16px;padding-left:20px;">
+          <li>Make sure you're on your response sheet page — the one showing your question numbers and marked answers.</li>
+          <li>
+            Open your browser's "developer tools" — this is a built-in panel every browser has, it's completely safe.
+            <ul style="margin:6px 0 0;padding-left:18px;">
+              <li><b>Windows:</b> press <span class="mono">F12</span>, or <span class="mono">Ctrl + Shift + J</span></li>
+              <li><b>Mac:</b> press <span class="mono">Cmd + Option + J</span></li>
+              <li>(Alternatively: right-click anywhere on the page → click "Inspect")</li>
+            </ul>
+          </li>
+          <li>A panel will open, usually on the right or bottom of your screen. At the top of that panel, click the tab labelled <b>"Console"</b>.</li>
+          <li>Click anywhere inside that blank Console area so your cursor is blinking there.</li>
+          <li>Click the <b>"Copy code"</b> button below, then paste it into the Console (<span class="mono">Ctrl+V</span> on Windows, <span class="mono">Cmd+V</span> on Mac) and press <b>Enter</b>.</li>
+          <li>You'll see a message saying <span class="mono">"Copied to clipboard."</span> — your response sheet data has now been copied automatically.</li>
+          <li>Come back to this page, click inside the box below, and paste (<span class="mono">Ctrl+V</span> / <span class="mono">Cmd+V</span>) — then hit "Calculate my score".</li>
+        </ol>
+        <button class="btn" id="copyCodeBtn" style="margin-top:0;">Copy code</button>
+        <span id="copyConfirm" style="display:none;color:var(--correct);font-size:13px;margin-left:10px;">✓ Copied!</span>
+        <p style="margin:14px 0 0;color:var(--ink-soft);font-size:12.5px;">
+          This code only reads what's already visible on your own response sheet page — it doesn't access anything else, doesn't send data anywhere, and works entirely inside your own browser.
+        </p>
+      </div>
+
+      <textarea id="responseInput" placeholder='{"candidateDetails": {...}, "recordedResponses": [...] }' disabled></textarea>
+      <div id="errorMsg" class="error-msg"></div>
+      <br>
+      <button class="btn" id="computeBtn" disabled>Calculate my score</button>
+    </div>
+
+    <div class="panel" id="results">
+      <div class="panel-label"><span class="num">3</span> Your result</div>
+
+      <div id="cachedBanner" style="display:none;background:var(--paper-dim);border:1px solid var(--line);border-radius:6px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--ink-soft);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+        <span id="cachedBannerText"></span>
+        <button class="btn" id="clearCacheBtn" style="margin-top:0;background:transparent;color:var(--wrong);border:1.5px solid var(--wrong);padding:7px 14px;font-size:12.5px;">Clear my saved data</button>
+      </div>
+
+      <div class="score-row">
+        <div class="score-bubble-wrap">
+          <div class="score-bubble-bg"></div>
+          <div class="score-bubble-fg" id="scoreBubbleFg"></div>
+          <div class="score-bubble-center">
+            <div class="num" id="totalMarksNum">0</div>
+            <div class="lbl">out of 720</div>
+          </div>
+        </div>
+        <div class="rank-block">
+          <div class="lbl">Expected rank range</div>
+          <div class="rank-val" id="rankVal">—</div>
+          <div class="rank-note" id="rankNote"></div>
+        </div>
+      </div>
+
+      <div class="counts-row">
+        <div class="count-chip correct"><div class="n" id="cCorrect">0</div><div class="t">Correct</div></div>
+        <div class="count-chip wrong"><div class="n" id="cWrong">0</div><div class="t">Wrong</div></div>
+        <div class="count-chip unatt"><div class="n" id="cUnatt">0</div><div class="t">Unattempted</div></div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th class="num">Correct</th>
+            <th class="num">Wrong</th>
+            <th class="num">Unatt.</th>
+            <th class="num">Marks</th>
+          </tr>
+        </thead>
+        <tbody id="subjectTableBody"></tbody>
+        <tfoot>
+          <tr class="total-row">
+            <td>Total</td>
+            <td class="num" id="tCorrect">0</td>
+            <td class="num" id="tWrong">0</td>
+            <td class="num" id="tUnatt">0</td>
+            <td class="num" id="tMarks">0</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <button class="btn" id="breakdownBtn" style="background:transparent;color:var(--navy);border:1.5px solid var(--navy);padding:9px 18px;font-size:13px;margin-top:22px;">
+        Show question-by-question breakdown →
+      </button>
+
+      <div id="breakdownPanel" style="display:none;margin-top:20px;">
+        <div style="display:flex;gap:16px;margin-bottom:16px;font-size:12.5px;color:var(--ink-soft);flex-wrap:wrap;align-items:center;">
+          <span><span class="legend-dot" style="display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:middle;background:var(--correct-bg);border:1px solid var(--correct);"></span>Correct</span>
+          <span><span class="legend-dot" style="display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:middle;background:var(--wrong-bg);border:1px solid var(--wrong);"></span>Wrong</span>
+          <span><span class="legend-dot" style="display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:middle;background:#EFEBE0;border:1px solid var(--ink-soft);"></span>Unattempted</span>
+        </div>
+        <div id="qGrid"></div>
+        <div id="qLists" style="margin-top:24px;display:flex;flex-direction:column;gap:16px;"></div>
+      </div>
+    </div>
+
+    <div class="foot-note">
+      Answer key applied includes NTA-notified dropped questions (auto full marks) and questions with multiple accepted options.
+      Ranks above 540 marks are based on shared reference data; ranks below 540 are estimated from typical NEET score distributions and are indicative only, not official.
+      This is an independent, unofficial tool — always verify your final result against NTA's official scorecard.
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ============ ANSWER KEYS ============ */
+/* "DROP" = question dropped, full marks to everyone.
+   "a,b"  = multiple options accepted (comma separated). */
+const ANSWER_KEYS = {
+"50": {1:"4",2:"4",3:"4",4:"3",5:"1",6:"3",7:"1",8:"1",9:"4",10:"4",
+11:"1",12:"1",13:"3",14:"2",15:"2",16:"2",17:"3",18:"1",19:"3",20:"3",
+21:"4",22:"2",23:"3",24:"3",25:"4",26:"DROP",27:"2",28:"2",29:"2",30:"1",
+31:"3",32:"2",33:"2",34:"3",35:"3",36:"1",37:"1",38:"2,3",39:"3",40:"4",
+41:"1",42:"3",43:"3",44:"3",45:"1",46:"3",47:"3",48:"1",49:"1",50:"3",
+51:"3",52:"4",53:"3",54:"3",55:"3",56:"2",57:"1",58:"1",59:"4",60:"2",
+61:"1",62:"1",63:"1",64:"3",65:"4",66:"1",67:"4",68:"4",69:"1",70:"1",
+71:"1",72:"4",73:"1",74:"1",75:"2",76:"4",77:"1",78:"1",79:"2",80:"2",
+81:"2",82:"1",83:"1",84:"1",85:"1",86:"4",87:"3",88:"3",89:"4",90:"4",
+91:"3",92:"1",93:"1",94:"4",95:"4",96:"1",97:"2",98:"2",99:"2",100:"2",
+101:"1",102:"2",103:"1",104:"3",105:"1",106:"2",107:"3",108:"1",109:"4",110:"1",
+111:"1",112:"4",113:"1",114:"2",115:"2",116:"4",117:"4",118:"4",119:"1",120:"4",
+121:"4",122:"2",123:"2",124:"2",125:"3",126:"4",127:"2",128:"3",129:"1",130:"3",
+131:"3",132:"3",133:"3",134:"1",135:"3",136:"1",137:"1",138:"2",139:"2",140:"1",
+141:"2",142:"3",143:"4",144:"2",145:"3",146:"3",147:"1",148:"2",149:"2",150:"1",
+151:"1",152:"1",153:"1",154:"2",155:"4",156:"3",157:"4",158:"4",159:"3",160:"4",
+161:"3",162:"3",163:"1",164:"2",165:"2",166:"4",167:"2",168:"1",169:"4",170:"1",
+171:"3",172:"1",173:"3",174:"4",175:"1",176:"1",177:"3",178:"2",179:"4",180:"1"},
+
+"60": {1:"3",2:"2",3:"2",4:"4",5:"1",6:"1",7:"2",8:"3",9:"1",10:"3",
+11:"3",12:"4",13:"4",14:"3",15:"1",16:"3",17:"4",18:"1",19:"3",20:"4",
+21:"1",22:"2",23:"1",24:"2",25:"1",26:"4",27:"2",28:"2",29:"3",30:"2",
+31:"3",32:"1",33:"1",34:"4",35:"1",36:"1,4",37:"1",38:"1",39:"1",40:"3",
+41:"3",42:"1",43:"DROP",44:"4",45:"4",46:"2",47:"4",48:"2",49:"3",50:"3",
+51:"4",52:"1",53:"3",54:"4",55:"1",56:"3",57:"3",58:"3",59:"3",60:"3",
+61:"3",62:"3",63:"1",64:"2",65:"1",66:"1",67:"2",68:"3",69:"3",70:"2",
+71:"3",72:"3",73:"1",74:"2",75:"2",76:"4",77:"3",78:"3",79:"3",80:"2",
+81:"1",82:"4",83:"4",84:"1",85:"2",86:"1",87:"3",88:"2",89:"3",90:"1",
+91:"1",92:"1",93:"3",94:"4",95:"4",96:"3",97:"3",98:"3",99:"3",100:"4",
+101:"4",102:"2",103:"3",104:"2",105:"2",106:"2",107:"2",108:"4",109:"1",110:"1",
+111:"3",112:"4",113:"2",114:"1",115:"2",116:"4",117:"2",118:"3",119:"1",120:"4",
+121:"1",122:"4",123:"3",124:"2",125:"3",126:"4",127:"4",128:"3",129:"2",130:"1",
+131:"1",132:"1",133:"3",134:"4",135:"3",136:"3",137:"3",138:"2",139:"2",140:"2",
+141:"3",142:"1",143:"2",144:"3",145:"3",146:"4",147:"2",148:"1",149:"4",150:"3",
+151:"4",152:"4",153:"3",154:"2",155:"1",156:"1",157:"3",158:"1",159:"3",160:"4",
+161:"1",162:"4",163:"3",164:"2",165:"2",166:"3",167:"4",168:"3",169:"1",170:"3",
+171:"3",172:"4",173:"4",174:"1",175:"2",176:"1",177:"1",178:"3",179:"4",180:"4"},
+
+"70": {1:"4",2:"1",3:"4",4:"2",5:"4",6:"2",7:"2",8:"3",9:"2",10:"4",
+11:"2",12:"1",13:"1",14:"3",15:"4",16:"4",17:"4",18:"2",19:"1",20:"2",
+21:"4",22:"3,4",23:"1",24:"3",25:"4",26:"2",27:"4",28:"4",29:"3",30:"3",
+31:"1",32:"1",33:"1",34:"4",35:"2",36:"4",37:"3",38:"2",39:"2",40:"DROP",
+41:"3",42:"4",43:"4",44:"3",45:"3",46:"1",47:"1",48:"1",49:"4",50:"2",
+51:"1",52:"1",53:"1",54:"4",55:"4",56:"4",57:"2",58:"3",59:"1",60:"2",
+61:"2",62:"4",63:"2",64:"4",65:"2",66:"4",67:"3",68:"2",69:"2",70:"2",
+71:"1",72:"2",73:"4",74:"2",75:"2",76:"2",77:"3",78:"1",79:"3",80:"2",
+81:"4",82:"2",83:"2",84:"2",85:"2",86:"2",87:"1",88:"3",89:"3",90:"4",
+91:"4",92:"1",93:"3",94:"2",95:"1",96:"2",97:"2",98:"2",99:"2",100:"2",
+101:"3",102:"3",103:"1",104:"4",105:"2",106:"4",107:"3",108:"2",109:"4",110:"3",
+111:"1",112:"3",113:"3",114:"3",115:"1",116:"2",117:"3",118:"3",119:"4",120:"2",
+121:"4",122:"1",123:"3",124:"1",125:"1",126:"4",127:"1",128:"2",129:"1",130:"2",
+131:"3",132:"2",133:"4",134:"4",135:"4",136:"2",137:"4",138:"3",139:"2",140:"3",
+141:"2",142:"1",143:"1",144:"4",145:"1",146:"2",147:"4",148:"2",149:"1",150:"4",
+151:"3",152:"4",153:"2",154:"4",155:"3",156:"3",157:"2",158:"2",159:"2",160:"2",
+161:"4",162:"2",163:"2",164:"1",165:"1",166:"4",167:"1",168:"2",169:"1",170:"1",
+171:"4",172:"3",173:"2",174:"2",175:"3",176:"3",177:"3",178:"3",179:"4",180:"3"},
+
+"80": {1:"4",2:"DROP",3:"2",4:"1",5:"1,2",6:"2",7:"2",8:"1",9:"4",10:"2",
+11:"1",12:"4",13:"2",14:"4",15:"2",16:"3",17:"2",18:"2",19:"4",20:"2",
+21:"1",22:"4",23:"4",24:"4",25:"3",26:"1",27:"1",28:"1",29:"1",30:"3",
+31:"1",32:"4",33:"2",34:"3",35:"3",36:"4",37:"4",38:"2",39:"2",40:"2",
+41:"3",42:"3",43:"2",44:"3",45:"2",46:"1",47:"2",48:"4",49:"1",50:"4",
+51:"4",52:"4",53:"4",54:"2",55:"2",56:"2",57:"3",58:"4",59:"4",60:"3",
+61:"3",62:"3",63:"4",64:"4",65:"4",66:"2",67:"1",68:"4",69:"2",70:"1",
+71:"4",72:"4",73:"2",74:"4",75:"4",76:"3",77:"1",78:"3",79:"3",80:"2",
+81:"1",82:"4",83:"3",84:"3",85:"2",86:"3",87:"4",88:"4",89:"2",90:"4",
+91:"2",92:"1",93:"2",94:"1",95:"1",96:"4",97:"1",98:"4",99:"3",100:"4",
+101:"2",102:"4",103:"1",104:"2",105:"3",106:"2",107:"2",108:"4",109:"2",110:"1",
+111:"3",112:"1",113:"4",114:"3",115:"1",116:"1",117:"1",118:"3",119:"4",120:"1",
+121:"4",122:"3",123:"4",124:"3",125:"4",126:"3",127:"4",128:"2",129:"1",130:"3",
+131:"4",132:"3",133:"2",134:"2",135:"4",136:"1",137:"4",138:"4",139:"4",140:"3",
+141:"4",142:"4",143:"2",144:"3",145:"3",146:"4",147:"1",148:"4",149:"4",150:"3",
+151:"1",152:"3",153:"2",154:"4",155:"1",156:"1",157:"1",158:"2",159:"3",160:"3",
+161:"2",162:"4",163:"4",164:"3",165:"4",166:"1",167:"2",168:"4",169:"2",170:"1",
+171:"2",172:"2",173:"1",174:"2",175:"4",176:"3",177:"2",178:"1",179:"4",180:"1"}
+};
+
+/* ============ SUBJECT RANGES ============ */
+const SUBJECTS = [
+  {name:"Physics", min:1, max:45},
+  {name:"Chemistry", min:46, max:90},
+  {name:"Botany", min:91, max:135},
+  {name:"Zoology", min:136, max:180}
+];
+
+/* ============ MARKS -> RANK TABLE ============ */
+/* Checked high to low; first matching bucket wins. */
+const RANK_TABLE = [
+  {min:705, max:Infinity, rMin:1, rMax:10},
+  {min:685, max:704, rMin:11, rMax:100},
+  {min:675, max:684, rMin:100, rMax:200},
+  {min:665, max:674, rMin:200, rMax:400},
+  {min:660, max:664, rMin:400, rMax:550},
+  {min:655, max:659, rMin:550, rMax:750},
+  {min:650, max:654, rMin:750, rMax:1050},
+  {min:640, max:649, rMin:1050, rMax:1700},
+  {min:630, max:639, rMin:1700, rMax:2600},
+  {min:620, max:629, rMin:2600, rMax:3700},
+  {min:610, max:619, rMin:3700, rMax:5100},
+  {min:600, max:609, rMin:5100, rMax:6900},
+  {min:590, max:599, rMin:6900, rMax:8900},
+  {min:580, max:589, rMin:8900, rMax:11900},
+  {min:570, max:579, rMin:11900, rMax:15900},
+  {min:560, max:569, rMin:15900, rMax:20900},
+  {min:550, max:559, rMin:20900, rMax:26900},
+  {min:540, max:549, rMin:26900, rMax:33900, estimated:false},
+  {min:520, max:539, rMin:33900, rMax:54900, estimated:true},
+  {min:500, max:519, rMin:54900, rMax:88900, estimated:true},
+  {min:480, max:499, rMin:88900, rMax:142900, estimated:true},
+  {min:460, max:479, rMin:142900, rMax:224900, estimated:true},
+  {min:440, max:459, rMin:224900, rMax:341900, estimated:true},
+  {min:420, max:439, rMin:341900, rMax:493900, estimated:true},
+  {min:400, max:419, rMin:493900, rMax:672900, estimated:true},
+  {min:380, max:399, rMin:672900, rMax:863900, estimated:true},
+  {min:360, max:379, rMin:863900, rMax:1050900, estimated:true},
+  {min:340, max:359, rMin:1050900, rMax:1217900, estimated:true},
+  {min:320, max:339, rMin:1217900, rMax:1352900, estimated:true},
+  {min:300, max:319, rMin:1352900, rMax:1451900, estimated:true},
+  {min:280, max:299, rMin:1451900, rMax:1518900, estimated:true},
+  {min:260, max:279, rMin:1518900, rMax:1561900, estimated:true},
+  {min:240, max:259, rMin:1561900, rMax:1588900, estimated:true},
+  {min:220, max:239, rMin:1588900, rMax:1604900, estimated:true},
+  {min:200, max:219, rMin:1604900, rMax:1613400, estimated:true},
+  {min:180, max:199, rMin:1613400, rMax:1617400, estimated:true},
+  {min:160, max:179, rMin:1617400, rMax:1619000, estimated:true},
+  {min:140, max:159, rMin:1619000, rMax:1619650, estimated:true},
+  {min:120, max:139, rMin:1619650, rMax:1619900, estimated:true},
+  {min:100, max:119, rMin:1619900, rMax:1620000, estimated:true}
+];
+
+function fmt(n){ return n.toLocaleString('en-IN'); }
+
+function lookupRank(marks){
+  for(const b of RANK_TABLE){
+    if(marks >= b.min && marks <= b.max){
+      const isTop = b.max === Infinity;
+      const label = isTop ? `Rank ${fmt(b.rMin)} – ${fmt(b.rMax)}` : `Rank ${fmt(b.rMin)} – ${fmt(b.rMax)}`;
+      return {label, estimated: !!b.estimated};
+    }
+  }
+  return {label:`Rank 1,620,000+`, estimated:true};
+}
+
+/* ============ CONSOLE SCRIPT (for the "how to get this" guide) ============ */
+const CONSOLE_SCRIPT = `(() => {
+    function getSectionTable(headingText) {
+        const heading = [...document.querySelectorAll("h1,h2,h3,h4,h5,h6")]
+            .find(el => el.textContent.trim().includes(headingText));
+        if (!heading) return null;
+        const container = heading.nextElementSibling;
+        if (!container) return null;
+        return container.querySelector("table");
+    }
+    // ================= Candidate Details =================
+    const candidateDetails = {};
+    const candidateTable = getSectionTable("Candidate Details");
+    if (candidateTable) {
+        candidateTable.querySelectorAll("tr").forEach(row => {
+            const cells = [...row.querySelectorAll("td,th")];
+            for (let i = 0; i < cells.length - 1; i += 2) {
+                const key = cells[i].innerText.trim().replace(/:$/, "");
+                const value = cells[i + 1].innerText.trim();
+                if (key) candidateDetails[key] = value;
+            }
+        });
+    }
+    // ================= Recorded Response =================
+    const recordedResponses = [];
+    const responseTable = getSectionTable("Recorded Response List");
+    if (responseTable) {
+        const rows = [...responseTable.rows];
+        const headers = [...rows[0].cells].map(c => c.innerText.trim());
+        const qIndex = headers.findIndex(h =>
+            /Question\\s*No/i.test(h)
+        );
+        const rIndex = headers.findIndex(h =>
+            /Recorded Response/i.test(h)
+        );
+        rows.slice(1).forEach(row => {
+            const cells = [...row.cells];
+            recordedResponses.push({
+                questionNo: cells[qIndex]?.innerText.trim() ?? "",
+                recordedResponse: cells[rIndex]?.innerText.trim() ?? ""
+            });
+        });
+    }
+    const result = {
+        candidateDetails,
+        recordedResponses
+    };
+    console.log(result);
+    copy(JSON.stringify(result, null, 2));
+    console.log("Copied to clipboard.");
+})();`;
+
+const howToBtn = document.getElementById('howToBtn');
+const howToPanel = document.getElementById('howToPanel');
+howToBtn.addEventListener('click', () => {
+  const isOpen = howToPanel.style.display === 'block';
+  howToPanel.style.display = isOpen ? 'none' : 'block';
+  howToBtn.textContent = isOpen ? "Don't know how to get this? Show me how →" : "Hide instructions ↑";
+});
+
+const copyCodeBtn = document.getElementById('copyCodeBtn');
+const copyConfirm = document.getElementById('copyConfirm');
+copyCodeBtn.addEventListener('click', () => {
+  navigator.clipboard.writeText(CONSOLE_SCRIPT).then(() => {
+    copyConfirm.style.display = 'inline';
+    setTimeout(() => { copyConfirm.style.display = 'none'; }, 2500);
+  }).catch(() => {
+    alert("Couldn't copy automatically. Please select and copy the code manually.");
+  });
+});
+
+/* ============ CACHING (saved on the student's own device) ============ */
+const CACHE_KEY = 'neetResultCache_v1';
+
+function saveCache(rawInputText){
+  try{
+    localStorage.setItem(CACHE_KEY, JSON.stringify({rawInput: rawInputText, savedAt: Date.now()}));
+  }catch(e){ /* storage unavailable — fail silently, scoring still works */ }
+}
+function loadCache(){
+  try{
+    const raw = localStorage.getItem(CACHE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+function clearCache(){
+  try{ localStorage.removeItem(CACHE_KEY); }catch(e){}
+}
+
+let lastQOutcomes = null; // populated on every successful compute, used by breakdown panel
+
+function scoreResponses(data){
+  const rawCode = (data.candidateDetails && data.candidateDetails["Booklet Code (Set Code)"]) || "";
+  const code = String(rawCode).trim();
+  const key = ANSWER_KEYS[code];
+  if(!key){
+    return {error: `Booklet code "${code || 'unknown'}" isn't in our answer key set (we cover 50, 60, 70, 80). Please check your pasted data.`};
+  }
+
+  let totalMarks = 0;
+  let correct = 0, wrong = 0, unatt = 0;
+  const subjMarks = {}, subjCorrect = {}, subjWrong = {}, subjUnatt = {};
+  SUBJECTS.forEach(s => { subjMarks[s.name]=0; subjCorrect[s.name]=0; subjWrong[s.name]=0; subjUnatt[s.name]=0; });
+
+  function subjectFor(qNo){
+    return SUBJECTS.find(s => qNo >= s.min && qNo <= s.max);
+  }
+
+  const qOutcomes = [];
+
+  data.recordedResponses.forEach(item => {
+    const qNo = parseInt(item.questionNo, 10);
+    const resp = (item.recordedResponse || "").toString().trim();
+    const correctAns = key[qNo];
+    if(correctAns === undefined) return; // unknown question, skip safely
+
+    const subj = subjectFor(qNo);
+    const subjName = subj ? subj.name : null;
+
+    let outcome; // 'correct' | 'wrong' | 'unatt'
+    if(correctAns === "DROP"){
+      outcome = 'correct'; // full marks to all
+    } else if(resp === "-" || resp === ""){
+      outcome = 'unatt';
+    } else if(correctAns.includes(",")){
+      const accepted = correctAns.split(",").map(s => s.trim());
+      outcome = accepted.includes(resp) ? 'correct' : 'wrong';
+    } else {
+      outcome = (resp === correctAns) ? 'correct' : 'wrong';
+    }
+
+    qOutcomes.push({qNo, outcome});
+
+    if(outcome === 'correct'){
+      totalMarks += 4; correct++;
+      if(subjName){ subjMarks[subjName]+=4; subjCorrect[subjName]++; }
+    } else if(outcome === 'wrong'){
+      totalMarks -= 1; wrong++;
+      if(subjName){ subjMarks[subjName]-=1; subjWrong[subjName]++; }
+    } else {
+      unatt++;
+      if(subjName){ subjUnatt[subjName]++; }
+    }
+  });
+
+  return {totalMarks, correct, wrong, unatt, subjMarks, subjCorrect, subjWrong, subjUnatt, qOutcomes};
+}
+
+function processResponseData(data, opts){
+  opts = opts || {};
+  if(!data.recordedResponses || !Array.isArray(data.recordedResponses)){
+    showError("Couldn't find 'recordedResponses' in the pasted data. Please paste the complete response sheet JSON.");
+    return false;
+  }
+  const r = scoreResponses(data);
+  if(r.error){
+    showError(r.error);
+    return false;
+  }
+  lastQOutcomes = r.qOutcomes;
+  renderResults(r, opts);
+  return true;
+}
+
+/* ============ UI WIRING ============ */
+const agreeBox = document.getElementById('agreeBox');
+const responseInput = document.getElementById('responseInput');
+const computeBtn = document.getElementById('computeBtn');
+const errorMsg = document.getElementById('errorMsg');
+const cachedBanner = document.getElementById('cachedBanner');
+const cachedBannerText = document.getElementById('cachedBannerText');
+const clearCacheBtn = document.getElementById('clearCacheBtn');
+
+agreeBox.addEventListener('change', () => {
+  responseInput.disabled = !agreeBox.checked;
+  computeBtn.disabled = !agreeBox.checked;
+  if(agreeBox.checked) responseInput.focus();
+});
+
+function showError(msg){
+  errorMsg.textContent = msg;
+  errorMsg.style.display = 'block';
+}
+function hideError(){
+  errorMsg.style.display = 'none';
+}
+
+computeBtn.addEventListener('click', () => {
+  hideError();
+  let data;
+  try{
+    data = JSON.parse(responseInput.value.trim());
+  }catch(e){
+    showError("That doesn't look like valid JSON. Please paste the full response sheet text exactly as copied.");
+    return;
+  }
+  const ok = processResponseData(data, {scroll:true});
+  if(ok){
+    saveCache(responseInput.value.trim());
+    cachedBanner.style.display = 'flex';
+    cachedBannerText.textContent = "Saved on your device — you'll see this again next time you visit.";
+  }
+});
+
+clearCacheBtn.addEventListener('click', () => {
+  clearCache();
+  cachedBanner.style.display = 'none';
+});
+
+/* Restore a cached result on page load, if one exists */
+(function restoreCache(){
+  const cached = loadCache();
+  if(!cached || !cached.rawInput) return;
+  try{
+    const data = JSON.parse(cached.rawInput);
+    agreeBox.checked = true;
+    responseInput.disabled = false;
+    computeBtn.disabled = false;
+    responseInput.value = cached.rawInput;
+    const ok = processResponseData(data, {scroll:false});
+    if(ok){
+      cachedBanner.style.display = 'flex';
+      const d = new Date(cached.savedAt);
+      cachedBannerText.textContent = `Showing your result from your last visit (saved ${d.toLocaleString()}). Paste new data to recalculate anytime.`;
+    }
+  }catch(e){
+    clearCache();
+  }
+})();
+
+function renderResults(r, opts){
+  opts = opts || {};
+  document.getElementById('results').style.display = 'block';
+
+  document.getElementById('cCorrect').textContent = r.correct;
+  document.getElementById('cWrong').textContent = r.wrong;
+  document.getElementById('cUnatt').textContent = r.unatt;
+
+  document.getElementById('tCorrect').textContent = r.correct;
+  document.getElementById('tWrong').textContent = r.wrong;
+  document.getElementById('tUnatt').textContent = r.unatt;
+  document.getElementById('tMarks').textContent = r.totalMarks;
+
+  const tbody = document.getElementById('subjectTableBody');
+  tbody.innerHTML = '';
+  SUBJECTS.forEach(s => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${s.name}</td>
+      <td class="num">${r.subjCorrect[s.name]}</td>
+      <td class="num">${r.subjWrong[s.name]}</td>
+      <td class="num">${r.subjUnatt[s.name]}</td>
+      <td class="num">${r.subjMarks[s.name]}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  const rankInfo = lookupRank(r.totalMarks);
+  document.getElementById('rankVal').textContent = rankInfo.label;
+  document.getElementById('rankNote').textContent = rankInfo.estimated
+    ? "Based on estimated distribution data — treat as indicative only."
+    : "Based on shared reference marks-to-rank data.";
+
+  // reset breakdown panel so it re-renders fresh next time it's opened
+  document.getElementById('breakdownPanel').style.display = 'none';
+  document.getElementById('breakdownBtn').textContent = "Show question-by-question breakdown →";
+
+  animateBubble(r.totalMarks);
+  if(opts.scroll !== false){
+    document.getElementById('results').scrollIntoView({behavior:'smooth', block:'start'});
+  }
+}
+
+/* ============ QUESTION-BY-QUESTION BREAKDOWN ============ */
+const breakdownBtn = document.getElementById('breakdownBtn');
+const breakdownPanel = document.getElementById('breakdownPanel');
+
+breakdownBtn.addEventListener('click', () => {
+  const isOpen = breakdownPanel.style.display === 'block';
+  if(isOpen){
+    breakdownPanel.style.display = 'none';
+    breakdownBtn.textContent = "Show question-by-question breakdown →";
+    return;
+  }
+  if(lastQOutcomes) renderBreakdown(lastQOutcomes);
+  breakdownPanel.style.display = 'block';
+  breakdownBtn.textContent = "Hide question-by-question breakdown ↑";
+});
+
+function renderBreakdown(qOutcomes){
+  const byQNo = {};
+  qOutcomes.forEach(o => { byQNo[o.qNo] = o.outcome; });
+
+  const qGrid = document.getElementById('qGrid');
+  qGrid.innerHTML = '';
+  SUBJECTS.forEach(s => {
+    const block = document.createElement('div');
+    const label = document.createElement('div');
+    label.className = 'qgrid-subject-label';
+    label.textContent = `${s.name} (Q${s.min}–${s.max})`;
+    block.appendChild(label);
+
+    const cellsWrap = document.createElement('div');
+    cellsWrap.className = 'qgrid-cells';
+    for(let q = s.min; q <= s.max; q++){
+      const outcome = byQNo[q];
+      const cell = document.createElement('div');
+      cell.className = 'qcell ' + (outcome || 'unatt');
+      cell.textContent = q;
+      cellsWrap.appendChild(cell);
+    }
+    block.appendChild(cellsWrap);
+    qGrid.appendChild(block);
+  });
+
+  const correctQs = qOutcomes.filter(o => o.outcome === 'correct').map(o => o.qNo).sort((a,b)=>a-b);
+  const wrongQs = qOutcomes.filter(o => o.outcome === 'wrong').map(o => o.qNo).sort((a,b)=>a-b);
+  const unattQs = qOutcomes.filter(o => o.outcome === 'unatt').map(o => o.qNo).sort((a,b)=>a-b);
+
+  const qLists = document.getElementById('qLists');
+  qLists.innerHTML = `
+    <div class="qlist-block correct">
+      <div class="qlist-title">Correct (${correctQs.length})</div>
+      <div class="qlist-values">${correctQs.length ? correctQs.join(', ') : '—'}</div>
+    </div>
+    <div class="qlist-block wrong">
+      <div class="qlist-title">Wrong (${wrongQs.length})</div>
+      <div class="qlist-values">${wrongQs.length ? wrongQs.join(', ') : '—'}</div>
+    </div>
+    <div class="qlist-block unatt">
+      <div class="qlist-title">Unattempted (${unattQs.length})</div>
+      <div class="qlist-values">${unattQs.length ? unattQs.join(', ') : '—'}</div>
+    </div>
+  `;
+}
+
+function animateBubble(marks){
+  const pctTarget = Math.max(0, Math.min(100, (marks/720)*100));
+  const numEl = document.getElementById('totalMarksNum');
+  const fgEl = document.getElementById('scoreBubbleFg');
+  let start = null;
+  const duration = 900;
+
+  function step(ts){
+    if(!start) start = ts;
+    const progress = Math.min((ts-start)/duration, 1);
+    const eased = 1 - Math.pow(1-progress, 3);
+    const currentPct = pctTarget * eased;
+    const currentNum = Math.round(marks * eased);
+    fgEl.style.background = `conic-gradient(var(--navy) ${currentPct}%, transparent 0)`;
+    numEl.textContent = currentNum;
+    if(progress < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+</script>
+</body>
+</html>
